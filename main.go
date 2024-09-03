@@ -40,7 +40,7 @@ func (l *Log) GetRecord(offset uint64) (Record, bool) {
 // Instancia global de Log para manejar los registros
 var log = Log{}
 
-// Maneja las solicitudes a la raíz (osea '/') y decide si se debe leer o escribir en el log (para q quede como en el ejemplo que no pone /write o /read)
+// Maneja las solicitudes a la raíz (o sea '/') y decide si se debe leer o escribir en el log (para q quede como en el ejemplo que no pone /write o /read)
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
