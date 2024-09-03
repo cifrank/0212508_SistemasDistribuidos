@@ -1,4 +1,4 @@
-module github.com/cifrank/0212508_ComputoDistribuido
+module github.com/cifrank/0212508_SistemasDistribuidos
 
 go 1.23.0
 

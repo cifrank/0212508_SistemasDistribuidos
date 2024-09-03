@@ -30,6 +30,8 @@ func (s *store) ReadAt(p []byte, off int64) (int, error) {
 	}
 	return s.File.ReadAt(p, off)
 }
+
+// Agrega datos al final del archivo usando un buffer (en este caso un buffer es un lugar temporal de memoria mientras se transfiere de un lugar a otro) y actualiza el tamaño del mismo
 func (s *store) Append(p []byte) (n uint64, pos uint64, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -41,9 +43,10 @@ func (s *store) Append(p []byte) (n uint64, pos uint64, err error) {
 	if err != nil {
 		return 0, 0, err
 	}
+	// Arregle errores al hacer el test, estaba usando la variable equivocada, puse una w para lo que debe ser, vi que eso hizo el prof en clase
 	w += lenWidth
-	s.size += uint64(n)
-	return uint64(n), pos, nil
+	s.size += uint64(w)
+	return uint64(w), pos, nil
 }
 
 func newStore(f *os.File) (*store, error) {
@@ -62,6 +65,7 @@ func newStore(f *os.File) (*store, error) {
 func (s *store) Read(pos uint64) ([]byte, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// Se asegura q se termine de escribir en el buffer antes de leer
 	if err := s.buf.Flush(); err != nil {
 		return nil, err
 	}
@@ -76,6 +80,7 @@ func (s *store) Read(pos uint64) ([]byte, error) {
 	return b, nil
 }
 
+// Cierra el archivo y checa q todo se haya escrito
 func (s *store) Close() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

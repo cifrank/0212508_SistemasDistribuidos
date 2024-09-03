@@ -2,10 +2,12 @@ package log
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path"
 
 	api "github.com/cifrank/0212508_SistemasDistribuidos/api/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 type segment struct {
@@ -15,6 +17,7 @@ type segment struct {
 	config                 Config
 }
 
+// Copiado del Notion gracias a la misericordia del prof
 func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	s := &segment{
 		baseOffset: baseOffset,
@@ -43,38 +46,61 @@ func newSegment(dir string, baseOffset uint64, c Config) (*segment, error) {
 	if s.index, err = newIndex(indexFile, c); err != nil {
 		return nil, err
 	}
-	if off, _, err := s.index.Read(-1); err == nil {
+	if off, _, err := s.index.Read(-1); err != nil {
 		s.nextOffset = baseOffset
 	} else {
 		s.nextOffset = baseOffset + uint64(off) + 1
 	}
+
 	return s, nil
 }
 
-func (s *segment) Append(record *api.Record) (uint64, error) {
-	off, pos, err := s.store.Append(record.Encode())
+func (s *segment) Append(record *api.Record) (off uint64, err error) {
+	off = s.nextOffset
+	// Arregle errores, ahora chequea si el segmento está lleno antes de escribir en vez de al final, igual, retorna un 0 mejor en vez de la posicion actual (que la habia puesto para indicar en donde quedo)
+	if s.IsMaxed() {
+		return 0, io.EOF
+	}
+	data, err := proto.Marshal(record)
 	if err != nil {
 		return 0, err
 	}
-	if err = s.index.Write(uint32(off), pos); err != nil {
+
+	_, pos, err := s.store.Append(data)
+	if err != nil {
 		return 0, err
 	}
+	// escribe en el índice la posición del registro con respecto al offset base
+	if err = s.index.Write(
+		uint32(s.nextOffset-uint64(s.baseOffset)),
+		pos,
+	); err != nil {
+		return 0, err
+	}
+
+	s.nextOffset++
+
 	return off, nil
 }
 
+// Lee y decodifica un registro en la posición del offset dado
 func (s *segment) Read(off uint64) (*api.Record, error) {
 	_, pos, err := s.index.Read(int64(off - s.baseOffset))
 	if err != nil {
 		return nil, err
 	}
+
 	b, err := s.store.Read(pos)
 	if err != nil {
 		return nil, err
 	}
-	record, err := api.Decode(b)
+
+	record := &api.Record{}
+	err = proto.Unmarshal(b, record)
 	if err != nil {
 		return nil, err
 	}
+
 	return record, nil
 }
 
