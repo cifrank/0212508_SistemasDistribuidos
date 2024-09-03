@@ -1,4 +1,5 @@
-# EJEMPLO DE COMANDOS QUE SIRVEN
+# EJEMPLO DE COMANDOS QUE SIRVEN 
+### (para el main.go no he probado comandos para lo nuevo del log)
 
 ### Le puse comentarios en el codigo q medio explican las cosas más complicadas para poder acordarme bien y q no se pierda la inspiracion jajaj
 
