@@ -21,10 +21,10 @@ func configFile(filename string) string {
 	if dir := os.Getenv("CONFIG_DIR"); dir != "" {
 		return filepath.Join(dir, filename)
 	}
-	homeDir, err := os.UserHomeDir()
+	certPath, err := filepath.Abs(filepath.Join("..", "cert_output"))
 	if err != nil {
 		panic(err)
 	}
 
-	return filepath.Join(homeDir, "/Desktop/ComputoDistribuido/0212508_SistemasDistribuidos/cert_output", filename)
+	return filepath.Join(certPath, filename)
 }

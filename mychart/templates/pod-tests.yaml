@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: run-test
+spec:
+  containers:
+    - name: test
+      image: 0212508/logger-tests:latest
+      command: ["go", "test", "./server/server_test.go"]
+  restartPolicy: Never
